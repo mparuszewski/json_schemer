@@ -23,11 +23,17 @@ module JSONSchemer
       NET_HTTP_REF_RESOLVER = proc { |uri| JSON.parse(Net::HTTP.get(uri)) }
       BOOLEANS = Set[true, false].freeze
 
-      RUBY_REGEX_ANCHORS_TO_ECMA_262 = {
-        :bos => 'A',
-        :eos => 'z',
-        :bol => '\A',
-        :eol => '\z'
+      RUBY_REGEX_TYPES_TO_ECMA_262 = {
+        :anchor => {
+          :bos => 'A',
+          :eos => 'z',
+          :bol => '\A',
+          :eol => '\z'
+        },
+        :type => {
+          :space => '[\t\r\n\f\v\uFEFF\u2029\p{Zs}]',
+          :nonspace => '[^\t\r\n\f\v\uFEFF\u2029\p{Zs}]'
+        }
       }.freeze
 
       INSERT_DEFAULT_PROPERTY = proc do |data, property, property_schema, _parent|
@@ -600,7 +606,7 @@ module JSONSchemer
         @ecma_262_regex ||= {}
         @ecma_262_regex[pattern] ||= Regexp.new(
           Regexp::Scanner.scan(pattern).map do |type, token, text|
-            type == :anchor ? RUBY_REGEX_ANCHORS_TO_ECMA_262.fetch(token, text) : text
+            RUBY_REGEX_TYPES_TO_ECMA_262.dig(type, token) || text
           end.join
         )
       end
