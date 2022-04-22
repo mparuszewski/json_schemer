@@ -75,13 +75,15 @@
     {
         "description": "escaped pointer ref",
         "schema": {
-            "tilda~field": {"type": "integer"},
-            "slash/field": {"type": "integer"},
-            "percent%field": {"type": "integer"},
+            "$defs": {
+                "tilde~field": {"type": "integer"},
+                "slash/field": {"type": "integer"},
+                "percent%field": {"type": "integer"}
+            },
             "properties": {
-                "tilda": {"$ref": "#/tilda~0field"},
-                "slash": {"$ref": "#/slash~1field"},
-                "percent": {"$ref": "#/percent%25field"}
+                "tilde": {"$ref": "#/$defs/tilde~0field"},
+                "slash": {"$ref": "#/$defs/slash~1field"},
+                "percent": {"$ref": "#/$defs/percent%25field"}
             }
         },
         "tests": [
@@ -91,8 +93,8 @@
                 "valid": false
             },
             {
-                "description": "tilda invalid",
-                "data": {"tilda": "aoeu"},
+                "description": "tilde invalid",
+                "data": {"tilde": "aoeu"},
                 "valid": false
             },
             {
@@ -106,8 +108,8 @@
                 "valid": true
             },
             {
-                "description": "tilda valid",
-                "data": {"tilda": 123},
+                "description": "tilde valid",
+                "data": {"tilde": 123},
                 "valid": true
             },
             {
@@ -141,7 +143,7 @@
         ]
     },
     {
-        "description": "ref overrides any sibling keywords",
+        "description": "ref applies alongside sibling keywords",
         "schema": {
             "$defs": {
                 "reffed": {
@@ -157,14 +159,14 @@
         },
         "tests": [
             {
-                "description": "ref valid",
+                "description": "ref valid, maxItems valid",
                 "data": { "foo": [] },
                 "valid": true
             },
             {
-                "description": "ref valid, maxItems ignored",
-                "data": { "foo": [ 1, 2, 3] },
-                "valid": true
+                "description": "ref valid, maxItems invalid",
+                "data": { "foo": [1, 2, 3] },
+                "valid": false
             },
             {
                 "description": "ref invalid",
@@ -194,6 +196,31 @@
         "schema": {
             "properties": {
                 "$ref": {"type": "string"}
+            }
+        },
+        "tests": [
+            {
+                "description": "property named $ref valid",
+                "data": {"$ref": "a"},
+                "valid": true
+            },
+            {
+                "description": "property named $ref invalid",
+                "data": {"$ref": 2},
+                "valid": false
+            }
+        ]
+    },
+    {
+        "description": "property named $ref, containing an actual $ref",
+        "schema": {
+            "properties": {
+                "$ref": {"$ref": "#/$defs/is-string"}
+            },
+            "$defs": {
+                "is-string": {
+                    "type": "string"
+                }
             }
         },
         "tests": [
@@ -352,6 +379,199 @@
                 "data": {
                     "foo\"bar": "1"
                 },
+                "valid": false
+            }
+        ]
+    },
+    {
+        "description": "ref creates new scope when adjacent to keywords",
+        "schema": {
+            "$defs": {
+                "A": {
+                    "unevaluatedProperties": false
+                }
+            },
+            "properties": {
+                "prop1": {
+                    "type": "string"
+                }
+            },
+            "$ref": "#/$defs/A"
+        },
+        "tests": [
+            {
+                "description": "referenced subschema doesn't see annotations from properties",
+                "data": {
+                    "prop1": "match"
+                },
+                "valid": false
+            }
+        ]
+    },
+    {
+        "description": "naive replacement of $ref with its destination is not correct",
+        "schema": {
+            "$defs": {
+                "a_string": { "type": "string" }
+            },
+            "enum": [
+                { "$ref": "#/$defs/a_string" }
+            ]
+        },
+        "tests": [
+            {
+                "description": "do not evaluate the $ref inside the enum, matching any string",
+                "data": "this is a string",
+                "valid": false
+            },
+            {
+                "description": "do not evaluate the $ref inside the enum, definition exact match",
+                "data": { "type": "string" },
+                "valid": false
+            },
+            {
+                "description": "match the enum exactly",
+                "data": { "$ref": "#/$defs/a_string" },
+                "valid": true
+            }
+        ]
+    },
+    {
+        "description": "refs with relative uris and defs",
+        "schema": {
+            "$id": "http://example.com/schema-relative-uri-defs1.json",
+            "properties": {
+                "foo": {
+                    "$id": "schema-relative-uri-defs2.json",
+                    "$defs": {
+                        "inner": {
+                            "properties": {
+                                "bar": { "type": "string" }
+                            }
+                        }
+                    },
+                    "$ref": "#/$defs/inner"
+                }
+            },
+            "$ref": "schema-relative-uri-defs2.json"
+        },
+        "tests": [
+            {
+                "description": "invalid on inner field",
+                "data": {
+                    "foo": {
+                        "bar": 1
+                    },
+                    "bar": "a"
+                },
+                "valid": false
+            },
+            {
+                "description": "invalid on outer field",
+                "data": {
+                    "foo": {
+                        "bar": "a"
+                    },
+                    "bar": 1
+                },
+                "valid": false
+            },
+            {
+                "description": "valid on both fields",
+                "data": {
+                    "foo": {
+                        "bar": "a"
+                    },
+                    "bar": "a"
+                },
+                "valid": true
+            }
+        ]
+    },
+    {
+        "description": "relative refs with absolute uris and defs",
+        "schema": {
+            "$id": "http://example.com/schema-refs-absolute-uris-defs1.json",
+            "properties": {
+                "foo": {
+                    "$id": "http://example.com/schema-refs-absolute-uris-defs2.json",
+                    "$defs": {
+                        "inner": {
+                            "properties": {
+                                "bar": { "type": "string" }
+                            }
+                        }
+                    },
+                    "$ref": "#/$defs/inner"
+                }
+            },
+            "$ref": "schema-refs-absolute-uris-defs2.json"
+        },
+        "tests": [
+            {
+                "description": "invalid on inner field",
+                "data": {
+                    "foo": {
+                        "bar": 1
+                    },
+                    "bar": "a"
+                },
+                "valid": false
+            },
+            {
+                "description": "invalid on outer field",
+                "data": {
+                    "foo": {
+                        "bar": "a"
+                    },
+                    "bar": 1
+                },
+                "valid": false
+            },
+            {
+                "description": "valid on both fields",
+                "data": {
+                    "foo": {
+                        "bar": "a"
+                    },
+                    "bar": "a"
+                },
+                "valid": true
+            }
+        ]
+    },
+    {
+        "description": "$id must be resolved against nearest parent, not just immediate parent",
+        "schema": {
+            "$id": "http://example.com/a.json",
+            "$defs": {
+                "x": {
+                    "$id": "http://example.com/b/c.json",
+                    "not": {
+                        "$defs": {
+                            "y": {
+                                "$id": "d.json",
+                                "type": "number"
+                            }
+                        }
+                    }
+                }
+            },
+            "allOf": [
+                {
+                    "$ref": "http://example.com/b/d.json"
+                }
+            ]
+        },
+        "tests": [
+            {
+                "description": "number should pass",
+                "data": 1,
+                "valid": true
+            },
+            {
+                "description": "non-number should fail",
+                "data": "a",
                 "valid": false
             }
         ]
