@@ -1,5 +1,9 @@
-JSON Schema Test Suite [![Build Status](https://travis-ci.org/json-schema-org/JSON-Schema-Test-Suite.svg?branch=master)](https://travis-ci.org/json-schema-org/JSON-Schema-Test-Suite)
-======================
+# JSON Schema Test Suite 
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](https://github.com/json-schema-org/.github/blob/main/CODE_OF_CONDUCT.md)
+[![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
+[![Financial Contributors on Open Collective](https://opencollective.com/json-schema/all/badge.svg?label=financial+contributors)](https://opencollective.com/json-schema)
+
+[![Build Status](https://github.com/json-schema-org/JSON-Schema-Test-Suite/workflows/Test%20Suite%20Sanity%20Checking/badge.svg)](https://github.com/json-schema-org/JSON-Schema-Test-Suite/actions?query=workflow%3A%22Test+Suite+Sanity+Checking%22)
 
 This repository contains a set of JSON objects that implementors of JSON Schema
 validation libraries can use to test their validators.
@@ -9,105 +13,127 @@ It is meant to be language agnostic and should require only a JSON parser.
 The conversion of the JSON objects into tests within your test framework of
 choice is still the job of the validator implementor.
 
-Structure of a Test
--------------------
+## Structure of a Test
 
-If you're going to use this suite, you need to know how tests are laid out. The
-tests are contained in the `tests` directory at the root of this repository.
+The tests in this suite are contained in the `tests` directory at the root of
+this repository. Inside that directory is a subdirectory for each draft or
+version of the specification.
 
-Inside that directory is a subdirectory for each draft or version of the
-schema.
+Inside each draft directory, there are a number of `.json` files and one or more
+special subdirectories. The subdirectories contain `.json` files meant for a
+specific testing purpose, and each `.json` file logically groups a set of test
+cases together. Often the grouping is by property under test, but not always.
 
-If you look inside the draft directory, there are a number of `.json` files,
-which logically group a set of test cases together. Often the grouping is by
-property under test, but not always, especially within optional test files
-(discussed below).
+The subdirectories are described in the next section.
 
 Inside each `.json` file is a single array containing objects. It's easiest to
 illustrate the structure of these with an example:
 
 ```json
-    {
-        "description": "the description of the test case",
-        "schema": {"the schema that should" : "be validated against"},
-        "tests": [
-            {
-                "description": "a specific test of a valid instance",
-                "data": "the instance",
-                "valid": true
-            },
-            {
-                "description": "another specific test this time, invalid",
-                "data": 15,
-                "valid": false
-            }
-        ]
-    }
+{
+    "description": "The description of the test case",
+    "schema": {
+        "description": "The schema against which the data in each test is validated",
+        "type": "string"
+    },
+    "tests": [
+        {
+            "description": "Test for a valid instance",
+            "data": "the instance to validate",
+            "valid": true
+        },
+        {
+            "description": "Test for an invalid instance",
+            "data": 15,
+            "valid": false
+        }
+    ]
+}
 ```
 
-So a description, a schema, and some tests, where tests is an array containing
-one or more objects with descriptions, data, and a boolean indicating whether
-they should be valid or invalid.
+In short: a description, a schema under test, and some tests, where each test
+in the `tests` array is an objects with a description of the case itself, the
+instance under test, and a boolean indicating whether it should be valid
+or invalid.
 
-Coverage
---------
+## Test Subdirectories
 
-Drafts 03, 04, 06, and 07 should have full coverage, with drafts 06 and 07
-being considered current and actively supported.  Bug fixes will be made as
-needed for draft-04 as it is still the most widely used, while draft-03
-is long since deprecated.
+There is currently only one subdirectory that may exist within each draft
+directory. This is:
 
-If you see anything missing from the current supported drafts, or incorrect
-on any draft still accepting bug fixes, please file an issue or submit a PR.
+1. `optional/`: Contains tests that are considered optional.
 
-Who Uses the Test Suite
------------------------
+## Coverage
+
+All JSON Schema specification releases should be well covered by this suite,
+including drafts 2020-12, 2019-09, 07, 06, 04 and 03. Additional coverage is
+always welcome, particularly for bugs encountered in real-world
+implementations.
+
+Drafts 04 and 03 are considered "frozen" in that less effort is put in to
+backport new tests to these versions.
+
+Contributions are very welcome, especially from implementers as they add support
+to their own implementations.
+
+If you see anything missing from the current supported drafts, or incorrect on
+any draft still accepting bug fixes, please
+[file an issue](https://github.com/json-schema-org/JSON-Schema-Test-Suite/issues)
+or [submit a PR](https://github.com/json-schema-org/JSON-Schema-Test-Suite).
+
+## Who Uses the Test Suite
 
 This suite is being used by:
 
-### Clojure ###
+### Clojure
 
 * [jinx](https://github.com/juxt/jinx)
 * [json-schema](https://github.com/tatut/json-schema)
 
-### Coffeescript ###
+### Coffeescript
 
 * [jsck](https://github.com/pandastrike/jsck)
 
-### C++ ###
+### Common Lisp
+
+* [json-schema](https://github.com/fisxoj/json-schema)
+
+### C++
 
 * [Modern C++ JSON schema validator](https://github.com/pboettch/json-schema-validator)
 
-### Dart ###
+### Dart
 
-* [json_schema](https://github.com/patefacio/json_schema)
+* [json\_schema](https://github.com/patefacio/json_schema)
 
-### Elixir ###
+### Elixir
 
-* [ex_json_schema](https://github.com/jonasschmidt/ex_json_schema)
+* [ex\_json\_schema](https://github.com/jonasschmidt/ex_json_schema)
 
-### Erlang ###
+### Erlang
 
 * [jesse](https://github.com/for-GET/jesse)
 
-### Go ###
+### Go
 
 * [gojsonschema](https://github.com/sigu-399/gojsonschema)
 * [validate-json](https://github.com/cesanta/validate-json)
 
-### Haskell ###
+### Haskell
 
 * [aeson-schema](https://github.com/timjb/aeson-schema)
 * [hjsonschema](https://github.com/seagreen/hjsonschema)
 
-### Java ###
+### Java
 
 * [json-schema-validator](https://github.com/daveclayton/json-schema-validator)
 * [everit-org/json-schema](https://github.com/everit-org/json-schema)
 * [networknt/json-schema-validator](https://github.com/networknt/json-schema-validator)
 * [Justify](https://github.com/leadpony/justify)
+* [Snow](https://github.com/ssilverman/snowy-json)
+* [jsonschemafriend](https://github.com/jimblackler/jsonschemafriend)
 
-### JavaScript ###
+### JavaScript
 
 * [json-schema-benchmark](https://github.com/Muscula/json-schema-benchmark)
 * [direct-schema](https://github.com/IreneKnapp/direct-schema)
@@ -125,7 +151,7 @@ This suite is being used by:
 * [ajv](https://github.com/epoberezkin/ajv)
 * [djv](https://github.com/korzio/djv)
 
-### Node.js ###
+### Node.js
 
 For node.js developers, the suite is also available as an
 [npm](https://www.npmjs.com/package/@json-schema-org/tests) package.
@@ -134,48 +160,61 @@ Node-specific support is maintained in a [separate
 repository](https://github.com/json-schema-org/json-schema-test-suite-npm)
 which also welcomes your contributions!
 
-### .NET ###
+### .NET
 
 * [Newtonsoft.Json.Schema](https://github.com/JamesNK/Newtonsoft.Json.Schema)
 * [Manatee.Json](https://github.com/gregsdennis/Manatee.Json)
 
-### PHP ###
+### Perl
 
+* [JSON::Schema::Draft201909](https://github.com/karenetheridge/JSON-Schema-Draft201909)
+* [JSON::Schema::Tiny](https://github.com/karenetheridge/JSON-Schema-Tiny)
+* [Test::JSON::Schema::Acceptance](https://github.com/karenetheridge/Test-JSON-Schema-Acceptance)
+
+### PHP
+
+* [opis/json-schema](https://github.com/opis/json-schema)
 * [json-schema](https://github.com/justinrainbow/json-schema)
 * [json-guard](https://github.com/thephpleague/json-guard)
 
-### PostgreSQL ###
+### PostgreSQL
 
 * [postgres-json-schema](https://github.com/gavinwahl/postgres-json-schema)
-* [is_jsonb_valid](https://github.com/furstenheim/is_jsonb_valid)
+* [is\_jsonb\_valid](https://github.com/furstenheim/is_jsonb_valid)
 
-### Python ###
+### Python
 
 * [jsonschema](https://github.com/Julian/jsonschema)
 * [fastjsonschema](https://github.com/seznam/python-fastjsonschema)
 * [hypothesis-jsonschema](https://github.com/Zac-HD/hypothesis-jsonschema)
+* [jschon](https://github.com/marksparkza/jschon)
 
-### Ruby ###
+### Ruby
 
 * [json-schema](https://github.com/hoxworth/json-schema)
-* [json_schemer](https://github.com/davishmcclurg/json_schemer)
+* [json\_schemer](https://github.com/davishmcclurg/json_schemer)
 
-### Rust ###
+### Rust
 
+* [jsonschema](https://github.com/Stranger6667/jsonschema-rs)
 * [valico](https://github.com/rustless/valico)
 
-### Swift ###
+### Scala
+
+* [typed-json](https://github.com/frawa/typed-json)
+
+### Swift
 
 * [JSONSchema](https://github.com/kylef/JSONSchema.swift)
 
 If you use it as well, please fork and send a pull request adding yourself to
 the list :).
 
-Contributing
-------------
+## Contributing
 
 If you see something missing or incorrect, a pull request is most welcome!
 
 There are some sanity checks in place for testing the test suite. You can run
-them with `bin/jsonschema_suite check && npm test` or `tox && npm test`. They will be run automatically by
-[Travis CI](https://travis-ci.org/) as well.
+them with `bin/jsonschema_suite check` or `tox`. They will be run automatically
+by [GitHub Actions](https://github.com/json-schema-org/JSON-Schema-Test-Suite/actions?query=workflow%3A%22Test+Suite+Sanity+Checking%22)
+as well.
